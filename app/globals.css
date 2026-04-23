@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --safe-top:    env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+html, body {
+  background: #FFF8EC;
+  color: #1B1A17;
+  font-family: 'Noto Sans Tamil', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* iOS-friendly tap behaviour */
+button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Large touch targets */
+.tap { min-height: 48px; min-width: 48px; }
+
+/* Bottom nav gap for fixed tab bar */
+.page { padding-bottom: calc(84px + var(--safe-bottom)); }
