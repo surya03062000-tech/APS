@@ -75,7 +75,7 @@ function matchCustomer(text: string, customers: Customer[]): Customer | undefine
   // Exact code match (digits in speech)
   const codeMatch = t.match(/\b(\d+)\b/);
   if (codeMatch) {
-    const byCode = customers.find(c => c.code === codeMatch[1]);
+    const byCode = customers.find(c => String(c.code) === codeMatch[1]);
     if (byCode) return byCode;
   }
 
