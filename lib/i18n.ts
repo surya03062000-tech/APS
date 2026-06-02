@@ -51,6 +51,30 @@ export const strings = {
   email:            { ta: 'மின்னஞ்சல்',        en: 'Email' },
   password:         { ta: 'கடவுச்சொல்',        en: 'Password' },
   signIn:           { ta: 'உள்நுழை',            en: 'Sign in' },
+  forgotPassword:   { ta: 'கடவுச்சொல் மறந்தீர்களா?', en: 'Forgot password?' },
+  resetPassword:    { ta: 'கடவுச்சொல் மீட்டமை', en: 'Reset password' },
+  sendResetLink:    { ta: 'மீட்டமை இணைப்பு அனுப்பு', en: 'Send reset link' },
+  resetSent:        { ta: 'மீட்டமை இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சல் சரிபாருங்கள்.', en: 'Reset link sent! Check your email.' },
+  backToSignIn:     { ta: 'உள்நுழைவுக்கு திரும்பு', en: 'Back to sign in' },
+  newPassword:      { ta: 'புதிய கடவுச்சொல்', en: 'New password' },
+  updatePassword:   { ta: 'கடவுச்சொல் புதுப்பி', en: 'Update password' },
+
+  // ---------- Profile ----------
+  profile:          { ta: 'சுயவிவரம்',          en: 'Profile' },
+  shopName:         { ta: 'கடை பெயர் (English)', en: 'Shop name (English)' },
+  shopNameTa:       { ta: 'கடை பெயர் (Tamil)',   en: 'Shop name (Tamil)' },
+  adminEmail:       { ta: 'நிர்வாக மின்னஞ்சல்',  en: 'Admin email' },
+  defaultRate:      { ta: 'இயல்புநிலை விலை ₹/L', en: 'Default rate ₹/L' },
+  profileSaved:     { ta: 'சுயவிவரம் சேமிக்கப்பட்டது!', en: 'Profile saved!' },
+
+  // ---------- Voice ----------
+  voiceEntry:       { ta: 'குரல் பதிவு',         en: 'Voice entry' },
+  listening:        { ta: 'கேட்கிறது…',           en: 'Listening…' },
+  voiceError:       { ta: 'குரல் அறியப்படவில்லை', en: 'Voice not recognised' },
+
+  // ---------- Reports actions ----------
+  morningSession:   { ta: 'காலை',                en: 'Morning' },
+  eveningSession:   { ta: 'மாலை',                en: 'Evening' },
 };
 
 export const t = (key: keyof typeof strings, lang: Lang) =>

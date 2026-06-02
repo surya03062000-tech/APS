@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
   // Allow either authed user OR cron secret
   let ownerId: string | null = null;
   if (cron_secret === process.env.CRON_SECRET) {
-    // cron — caller must also supply owner_id
     ownerId = owner_id ?? null;
   } else {
     const sb = createServer();
@@ -20,45 +19,87 @@ export async function POST(req: NextRequest) {
   }
   if (!ownerId) return NextResponse.json({ error: 'No owner' }, { status: 400 });
 
+  const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+  const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_VOICE_FROM;
+
+  if (!twilioSid || !twilioToken || !from) {
+    return NextResponse.json({
+      error: lang === 'ta'
+        ? 'Twilio அமைக்கப்படவில்லை. TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VOICE_FROM சரிபாருங்கள்.'
+        : 'Twilio not configured. Check TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VOICE_FROM env vars.'
+    }, { status: 500 });
+  }
+
   const admin = createAdmin();
   const today = new Date().toISOString().slice(0,10);
-  const { data: entries } = await admin
-    .from('entries').select('customer_id, morning_litres, evening_litres, customers(name, phone)')
-    .eq('owner_id', ownerId).eq('entry_date', today);
+  const { data: entries, error: fetchErr } = await admin
+    .from('entries')
+    .select('customer_id, morning_litres, evening_litres, customers(name, phone)')
+    .eq('owner_id', ownerId)
+    .eq('entry_date', today);
 
-  if (!process.env.TWILIO_ACCOUNT_SID) {
-    return NextResponse.json({ error: 'Twilio not configured' }, { status: 500 });
+  if (fetchErr) {
+    return NextResponse.json({ error: fetchErr.message }, { status: 500 });
   }
-  const client = Twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
-  const from = process.env.TWILIO_VOICE_FROM!;
-  const voice = lang === 'ta' ? 'Polly.Aditi' : 'Polly.Raveena';  // Polly Tamil/Hindi Indian voices
+
+  const callable = (entries ?? []).filter((e: any) => {
+    if (!e.customers?.phone) return false;
+    const litres = session === 'morning' ? Number(e.morning_litres) : Number(e.evening_litres);
+    return litres > 0;
+  });
+
+  if (callable.length === 0) {
+    return NextResponse.json({
+      message: lang === 'ta'
+        ? `இன்று ${session === 'morning' ? 'காலை' : 'மாலை'} பதிவுகள் இல்லை`
+        : `No ${session} entries found for today`
+    });
+  }
+
+  const client = Twilio(twilioSid, twilioToken);
+
+  // Polly.Aditi is hi-IN but renders Tamil text adequately.
+  // Use alice for Tamil as fallback when Polly.Aditi mispronounces.
+  const voice = lang === 'ta' ? 'Polly.Aditi' : 'Polly.Raveena';
+  const language = lang === 'ta' ? 'ta-IN' : 'en-IN';
 
   const calls = await Promise.allSettled(
-    (entries ?? [])
-      .filter((e: any) => e.customers?.phone)
-      .map((e: any) => {
-        const litres = session === 'morning'
-          ? Number(e.morning_litres) : Number(e.evening_litres);
-        if (!litres) return Promise.resolve(null);
-        const msg = voiceTemplate(lang, {
-          name: e.customers.name,
-          session: session as any,
-          litres,
-        });
-        // TwiML inline — <Say> with language + voice
-        const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+    callable.map((e: any) => {
+      const litres = session === 'morning'
+        ? Number(e.morning_litres) : Number(e.evening_litres);
+      const msg = voiceTemplate(lang, {
+        name: e.customers.name,
+        session: session as 'morning' | 'evening',
+        litres,
+      });
+      // Escape XML special characters
+      const safe = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="${voice}" language="${lang==='ta'?'ta-IN':'en-IN'}">${msg}</Say>
-  <Say voice="${voice}" language="${lang==='ta'?'ta-IN':'en-IN'}">${msg}</Say>
+  <Say voice="${voice}" language="${language}">${safe}</Say>
+  <Pause length="1"/>
+  <Say voice="${voice}" language="${language}">${safe}</Say>
 </Response>`;
-        return client.calls.create({
-          from,
-          to: e.customers.phone.startsWith('+') ? e.customers.phone : '+91' + e.customers.phone.replace(/\D/g,''),
-          twiml,
-        });
-      })
+      const toNum = e.customers.phone.startsWith('+')
+        ? e.customers.phone
+        : '+91' + e.customers.phone.replace(/\D/g,'');
+      return client.calls.create({ from, to: toNum, twiml });
+    })
   );
-  const ok = calls.filter(c => c.status === 'fulfilled' && c.value).length;
+
+  const ok   = calls.filter(c => c.status === 'fulfilled').length;
   const fail = calls.filter(c => c.status === 'rejected').length;
-  return NextResponse.json({ message: `Calls: ${ok} placed, ${fail} failed` });
+  const reasons = calls
+    .filter((c): c is PromiseRejectedResult => c.status === 'rejected')
+    .map(c => c.reason?.message ?? 'unknown')
+    .slice(0, 3);
+
+  return NextResponse.json({
+    message: lang === 'ta'
+      ? `அழைப்புகள்: ${ok} வெற்றி, ${fail} தோல்வி`
+      : `Calls: ${ok} placed, ${fail} failed`,
+    ok, fail,
+    ...(reasons.length ? { errors: reasons } : {}),
+  });
 }
