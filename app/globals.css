@@ -15,7 +15,27 @@ html, body {
   font-family: 'Noto Sans Tamil', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  transition: background 0.2s, color 0.2s;
 }
+
+/* Dark mode */
+html.dark, html.dark body {
+  background: #1a1612;
+  color: #f0e8d8;
+}
+html.dark .bg-white    { background: #2a251e !important; }
+html.dark .bg-cream    { background: #1a1612 !important; }
+html.dark .bg-milk     { background: #2a251e !important; }
+html.dark .bg-gold-50  { background: #2a2318 !important; }
+html.dark .shadow-card { box-shadow: 0 1px 4px #0006 !important; }
+html.dark .border-gold-400\/30 { border-color: #6b5a3a55 !important; }
+html.dark .text-ink\/50  { color: #a0907080 !important; }
+html.dark .text-ink\/60  { color: #a09070aa !important; }
+html.dark input, html.dark select, html.dark textarea {
+  background: #2a251e !important;
+  color: #f0e8d8 !important;
+}
+html.dark .bg-cream\/90 { background: #1a1612ee !important; }
 
 /* iOS-friendly tap behaviour */
 button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -25,3 +45,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* Bottom nav gap for fixed tab bar */
 .page { padding-bottom: calc(84px + var(--safe-bottom)); }
+
+/* Swipe animation */
+.swipe-reveal { transition: transform 0.2s ease; }

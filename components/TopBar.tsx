@@ -1,10 +1,18 @@
 'use client';
 import Link from 'next/link';
-import { useLang } from '@/lib/store';
-import { LogOut, Languages, UserCircle } from 'lucide-react';
+import { useEffect } from 'react';
+import { useLang, useDark } from '@/lib/store';
+import { LogOut, Languages, UserCircle, Moon, Sun } from 'lucide-react';
 
 export default function TopBar() {
   const { lang, toggle } = useLang();
+  const { dark, toggleDark } = useDark();
+
+  // Apply dark class on mount and whenever dark changes
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
+
   return (
     <header
       className="sticky top-0 z-30 bg-cream/90 backdrop-blur border-b border-gold-400/20"
@@ -18,11 +26,14 @@ export default function TopBar() {
           </span>
         </Link>
         <div className="flex items-center gap-1">
-          <button
-            onClick={toggle}
+          <button onClick={toggleDark}
+            className="tap w-9 h-9 flex items-center justify-center rounded-full bg-gold-50 text-gold-700"
+            aria-label="Toggle dark mode">
+            {dark ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
+          <button onClick={toggle}
             className="tap px-3 rounded-full bg-gold-50 text-gold-700 text-sm font-semibold flex items-center gap-1"
-            aria-label="Switch language"
-          >
+            aria-label="Switch language">
             <Languages size={16} />
             {lang === 'ta' ? 'EN' : 'த'}
           </button>
