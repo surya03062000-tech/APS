@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRole } from '@/lib/supabase-server';
+import { createAdmin } from "@/lib/supabase-server";
 import twilio from 'twilio';
 
 const THRESHOLD = 500; // ₹500 outstanding triggers alert
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  const sb = createServiceRole();
+  const sb = createAdmin();
 
   const { data: highBalance } = await sb
     .from('customers')

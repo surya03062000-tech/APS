@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRole } from '@/lib/supabase-server';
+import { createAdmin } from "@/lib/supabase-server";
 import nodemailer from 'nodemailer';
 
 export async function POST(req: NextRequest) {
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const sb = createServiceRole();
+  const sb = createAdmin();
   const today = new Date().toISOString().slice(0, 10);
 
   // Get all users with admin_email set
