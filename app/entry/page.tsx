@@ -5,6 +5,7 @@ import { createBrowser } from '@/lib/supabase';
 import { useLang } from '@/lib/store';
 import { t } from '@/lib/i18n';
 import { Droplets, IndianRupee, Cookie, Wheat, Check } from 'lucide-react';
+import VoiceMicButton from '@/components/VoiceMicButton';
 import type { Customer } from '@/types';
 
 type Tab = 'milk' | 'advance' | 'biscuit' | 'thivanam';
@@ -22,7 +23,6 @@ export default function AddEntryPage() {
   const [err,  setErr]  = useState<string|null>(null);
   const [ok,   setOk]   = useState(false);
 
-  // Form fields — one shared entry per (customer, date)
   const [f, setF] = useState({
     morning_litres: '', evening_litres: '',
     advance_amount: '',
@@ -30,7 +30,6 @@ export default function AddEntryPage() {
     thivanam_qty: '', thivanam_amount: '',
   });
 
-  // Load customers
   useEffect(() => {
     sb.from('customers').select('*').order('code').then(({ data }) => {
       setCustomers(data ?? []);
@@ -38,7 +37,6 @@ export default function AddEntryPage() {
     });
   }, []);
 
-  // When (customer, date) changes, load any existing entry for that pair
   useEffect(() => {
     if (!customerId) return;
     sb.from('entries').select('*')
@@ -80,7 +78,6 @@ export default function AddEntryPage() {
       thivanam_amount:Number(f.thivanam_amount) || 0,
     };
 
-    // upsert on (customer_id, entry_date)
     const { error } = await sb.from('entries')
       .upsert(payload, { onConflict: 'customer_id,entry_date' });
     setBusy(false);
@@ -96,7 +93,7 @@ export default function AddEntryPage() {
     { id: 'biscuit',  icon: Cookie,      label: t('biscuit', lang) },
     { id: 'thivanam', icon: Wheat,       label: t('thivanam', lang) },
   ];
-  const field = 'tap w-full rounded-xl border border-gold-400/30 bg-white px-4 focus:border-gold-400 focus:outline-none text-lg tabular-nums';
+  const field = 'tap flex-1 rounded-xl border border-gold-400/30 bg-white px-4 focus:border-gold-400 focus:outline-none text-lg tabular-nums';
 
   return (
     <section className="pt-3 space-y-4">
@@ -105,13 +102,13 @@ export default function AddEntryPage() {
       {/* Customer + Date */}
       <div className="grid grid-cols-5 gap-2">
         <select value={customerId} onChange={e=>setCustomerId(e.target.value)}
-          className={field + ' col-span-3 text-base'}>
+          className={'tap col-span-3 rounded-xl border border-gold-400/30 bg-white px-4 focus:border-gold-400 focus:outline-none text-base'}>
           {customers.map(c => (
             <option key={c.id} value={c.id}>#{c.code} — {c.name}</option>
           ))}
         </select>
         <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-          className={field + ' col-span-2 text-base'} />
+          className={'tap col-span-2 rounded-xl border border-gold-400/30 bg-white px-4 focus:border-gold-400 focus:outline-none text-base'} />
       </div>
 
       {/* Tabs */}
@@ -133,19 +130,28 @@ export default function AddEntryPage() {
         {tab === 'milk' && (<>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('morning', lang)} ({t('litres', lang)})</label>
-            <input type="number" step="0.001" inputMode="decimal"
-              value={f.morning_litres} onChange={e=>setF({...f, morning_litres:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" step="0.001" inputMode="decimal"
+                value={f.morning_litres} onChange={e=>setF({...f, morning_litres:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, morning_litres: v }))} />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('evening', lang)} ({t('litres', lang)})</label>
-            <input type="number" step="0.001" inputMode="decimal"
-              value={f.evening_litres} onChange={e=>setF({...f, evening_litres:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" step="0.001" inputMode="decimal"
+                value={f.evening_litres} onChange={e=>setF({...f, evening_litres:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, evening_litres: v }))} />
+            </div>
           </div>
           <p className="text-sm text-ink/60">
             {t('litres', lang)}: <b className="tabular-nums">
             {((Number(f.morning_litres)||0)+(Number(f.evening_litres)||0)).toFixed(3)}</b>
+          </p>
+          <p className="text-xs text-ink/40 flex items-center gap-1">
+            🎤 {lang==='ta' ? 'மைக்கை அழுத்தி பால் அளவை சொல்லுங்கள்' : 'Press mic and say the litre value'}
           </p>
         </>)}
 
@@ -155,24 +161,33 @@ export default function AddEntryPage() {
               {t('advance', lang)} (₹) —
               <span className="text-xs text-ink/50"> + given / − repaid</span>
             </label>
-            <input type="number" step="1" inputMode="decimal"
-              value={f.advance_amount} onChange={e=>setF({...f, advance_amount:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" step="1" inputMode="decimal"
+                value={f.advance_amount} onChange={e=>setF({...f, advance_amount:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, advance_amount: v }))} />
+            </div>
           </div>
         )}
 
         {tab === 'biscuit' && (<>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('qty', lang)}</label>
-            <input type="number" min="0" inputMode="numeric"
-              value={f.biscuit_qty} onChange={e=>setF({...f, biscuit_qty:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" min="0" inputMode="numeric"
+                value={f.biscuit_qty} onChange={e=>setF({...f, biscuit_qty:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, biscuit_qty: v }))} />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('amount', lang)} (₹)</label>
-            <input type="number" step="1" inputMode="decimal"
-              value={f.biscuit_amount} onChange={e=>setF({...f, biscuit_amount:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" step="1" inputMode="decimal"
+                value={f.biscuit_amount} onChange={e=>setF({...f, biscuit_amount:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, biscuit_amount: v }))} />
+            </div>
           </div>
           <p className="text-xs text-ink/50">
             {lang==='ta' ? 'சேமிக்கும் போது கையிருப்பு தானாக குறையும்' : 'Stock auto-deducts on save'}
@@ -182,15 +197,21 @@ export default function AddEntryPage() {
         {tab === 'thivanam' && (<>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('qty', lang)} ({lang==='ta'?'மூட்டை':'bags'})</label>
-            <input type="number" min="0" inputMode="numeric"
-              value={f.thivanam_qty} onChange={e=>setF({...f, thivanam_qty:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" min="0" inputMode="numeric"
+                value={f.thivanam_qty} onChange={e=>setF({...f, thivanam_qty:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, thivanam_qty: v }))} />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">{t('amount', lang)} (₹)</label>
-            <input type="number" step="1" inputMode="decimal"
-              value={f.thivanam_amount} onChange={e=>setF({...f, thivanam_amount:e.target.value})}
-              className={field}/>
+            <div className="flex gap-2 items-center">
+              <input type="number" step="1" inputMode="decimal"
+                value={f.thivanam_amount} onChange={e=>setF({...f, thivanam_amount:e.target.value})}
+                className={field}/>
+              <VoiceMicButton lang={lang} onValue={v => setF(prev => ({ ...prev, thivanam_amount: v }))} />
+            </div>
           </div>
           <p className="text-xs text-ink/50">
             {lang==='ta' ? 'சேமிக்கும் போது கையிருப்பு தானாக குறையும்' : 'Stock auto-deducts on save'}

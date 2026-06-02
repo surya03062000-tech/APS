@@ -30,6 +30,7 @@ export default function ReportsPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string|null>(null);
+  const [callSession, setCallSession] = useState<'morning'|'evening'>('morning');
 
   useEffect(() => {
     sb.from('customers').select('*').order('code').then(({ data }) => setCustomers(data ?? []));
@@ -206,10 +207,20 @@ export default function ReportsPage() {
           className="tap rounded-xl bg-emerald-600 text-white font-semibold flex items-center justify-center gap-2 shadow-card">
           <MessageCircle size={18}/> WhatsApp
         </button>
-        <button onClick={()=>call('/api/voice/call-all', { session:'morning', lang })}
-          className="tap rounded-xl bg-gold-400 text-white font-semibold flex items-center justify-center gap-2 shadow-card">
-          <Phone size={18}/> {t('callAll', lang)}
-        </button>
+        <div className="rounded-xl bg-gold-400 shadow-card overflow-hidden flex">
+          <button onClick={()=>call('/api/voice/call-all', { session: callSession, lang })}
+            className="tap flex-1 text-white font-semibold flex items-center justify-center gap-2 px-2">
+            <Phone size={18}/> {t('callAll', lang)}
+          </button>
+          <select
+            value={callSession}
+            onChange={e => setCallSession(e.target.value as 'morning'|'evening')}
+            className="bg-gold-500 text-white text-xs font-semibold px-2 border-l border-gold-300/40 focus:outline-none"
+          >
+            <option value="morning">{t('morningSession', lang)}</option>
+            <option value="evening">{t('eveningSession', lang)}</option>
+          </select>
+        </div>
       </div>
 
       {msg && <p className="text-sm text-center text-ink/70">{msg}</p>}

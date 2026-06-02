@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createBrowser } from '@/lib/supabase';
 import { useLang } from '@/lib/store';
 import { t } from '@/lib/i18n';
@@ -54,6 +55,13 @@ export default function SignIn() {
           className="tap w-full rounded-xl bg-gold-400 text-white font-semibold shadow-card disabled:opacity-60">
           {busy ? '…' : t('signIn', lang)}
         </button>
+
+        <div className="text-center mt-4">
+          <Link href="/auth/reset-password"
+            className="text-sm text-gold-600 underline">
+            {t('forgotPassword', lang)}
+          </Link>
+        </div>
       </form>
     </div>
   );

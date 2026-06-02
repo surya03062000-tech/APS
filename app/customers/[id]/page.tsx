@@ -1,6 +1,6 @@
 import { createServer } from '@/lib/supabase-server';
 import Link from 'next/link';
-import { ArrowLeft, Phone, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Pencil } from 'lucide-react';
 
 export default async function CustomerDetail({ params }: { params: { id: string } }) {
   const sb = createServer();
@@ -15,9 +15,15 @@ export default async function CustomerDetail({ params }: { params: { id: string 
 
   return (
     <section className="pt-3 space-y-4">
-      <Link href="/customers" className="tap inline-flex items-center gap-1 text-ink/60">
-        <ArrowLeft size={18}/> Back
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/customers" className="tap inline-flex items-center gap-1 text-ink/60">
+          <ArrowLeft size={18}/> Back
+        </Link>
+        <Link href={`/customers/${params.id}/edit`}
+          className="tap flex items-center gap-1 px-3 rounded-full bg-gold-50 text-gold-700 text-sm font-semibold">
+          <Pencil size={14}/> Edit
+        </Link>
+      </div>
 
       <div className="bg-white rounded-2xl p-4 shadow-card">
         <div className="flex items-center gap-3 mb-2">

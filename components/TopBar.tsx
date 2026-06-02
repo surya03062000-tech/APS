@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useLang } from '@/lib/store';
-import { LogOut, Languages } from 'lucide-react';
+import { LogOut, Languages, UserCircle } from 'lucide-react';
 
 export default function TopBar() {
   const { lang, toggle } = useLang();
@@ -26,6 +26,11 @@ export default function TopBar() {
             <Languages size={16} />
             {lang === 'ta' ? 'EN' : 'த'}
           </button>
+          <Link href="/profile"
+            className="tap flex items-center justify-center text-ink/60"
+            aria-label="Profile">
+            <UserCircle size={22} />
+          </Link>
           <Link href="/auth/signout" className="tap flex items-center justify-center text-ink/60">
             <LogOut size={20} />
           </Link>
