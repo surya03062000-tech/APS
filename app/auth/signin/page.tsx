@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { createBrowser } from '@/lib/supabase';
 import { useLang } from '@/lib/store';
 import { t } from '@/lib/i18n';
@@ -11,6 +12,7 @@ export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -39,15 +41,22 @@ export default function SignIn() {
 
         <label className="block text-sm font-medium mb-1">{t('email', lang)}</label>
         <input
-          type="email" required value={email} onChange={(e)=>setEmail(e.target.value)}
+          type="email" required value={email} onChange={e => setEmail(e.target.value)}
           className="tap w-full rounded-xl border border-gold-400/30 bg-milk px-4 mb-3 focus:border-gold-400 focus:outline-none"
         />
 
         <label className="block text-sm font-medium mb-1">{t('password', lang)}</label>
-        <input
-          type="password" required value={password} onChange={(e)=>setPassword(e.target.value)}
-          className="tap w-full rounded-xl border border-gold-400/30 bg-milk px-4 mb-4 focus:border-gold-400 focus:outline-none"
-        />
+        <div className="relative mb-4">
+          <input
+            type={showPwd ? 'text' : 'password'} required value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="tap w-full rounded-xl border border-gold-400/30 bg-milk px-4 pr-12 focus:border-gold-400 focus:outline-none"
+          />
+          <button type="button" onClick={() => setShowPwd(!showPwd)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/70">
+            {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
         {err && <p className="text-sm text-red-600 mb-3">{err}</p>}
 
@@ -57,8 +66,7 @@ export default function SignIn() {
         </button>
 
         <div className="text-center mt-4">
-          <Link href="/auth/reset-password"
-            className="text-sm text-gold-600 underline">
+          <Link href="/auth/reset-password" className="text-sm text-gold-600 underline">
             {t('forgotPassword', lang)}
           </Link>
         </div>

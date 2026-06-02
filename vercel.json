@@ -1,6 +1,10 @@
 {
   "crons": [
-    { "path": "/api/backup/drive",  "schedule": "30 17 * * *" },
-    { "path": "/api/cron/monthly",  "schedule": "0 3 1 * *"   }
+    { "path": "/api/backup/drive",         "schedule": "30 17 * * *"  },
+    { "path": "/api/cron/monthly",         "schedule": "0 3 1 * *"    },
+    { "path": "/api/cron/daily-report",    "schedule": "30 14 * * *"  },
+    { "path": "/api/voice/call-all",       "schedule": "0 1 * * *"    },
+    { "path": "/api/voice/call-all",       "schedule": "30 12 * * *"  },
+    { "path": "/api/notify/low-balance",   "schedule": "0 4 * * 1"    }
   ]
 }
