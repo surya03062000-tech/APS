@@ -2,27 +2,29 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, PlusCircle, Package, FileText } from 'lucide-react';
-import { useLang } from '@/lib/store';
+import { useLang, useStaff } from '@/lib/store';
 import { t } from '@/lib/i18n';
 
-const tabs = [
+const allTabs = [
   { href: '/dashboard',  icon: Home,       key: 'dashboard' as const },
   { href: '/customers',  icon: Users,      key: 'customers' as const },
   { href: '/entry',      icon: PlusCircle, key: 'addEntry' as const, primary: true },
   { href: '/inventory',  icon: Package,    key: 'inventory' as const },
-  { href: '/reports',    icon: FileText,   key: 'reports' as const },
+  { href: '/reports',    icon: FileText,   key: 'reports' as const, ownerOnly: true },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { lang } = useLang();
+  const { staff } = useStaff();
   if (pathname?.startsWith('/auth')) return null;
+  const tabs = staff ? allTabs.filter(t => !t.ownerOnly) : allTabs;
   return (
     <nav
       className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] bg-cream/95 backdrop-blur border-t border-gold-400/20"
       style={{ paddingBottom: 'var(--safe-bottom)' }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
         {tabs.map(({ href, icon: Icon, key, primary }) => {
           const active = pathname === href || pathname?.startsWith(href + '/');
           return (

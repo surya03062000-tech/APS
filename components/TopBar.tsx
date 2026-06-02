@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useLang, useDark } from '@/lib/store';
-import { LogOut, Languages, UserCircle, Moon, Sun } from 'lucide-react';
+import { useLang, useDark, useStaff } from '@/lib/store';
+import { LogOut, Languages, UserCircle, Moon, Sun, BarChart3 } from 'lucide-react';
 
 export default function TopBar() {
   const { lang, toggle } = useLang();
   const { dark, toggleDark } = useDark();
+  const { staff } = useStaff();
 
   // Apply dark class on mount and whenever dark changes
   useEffect(() => {
@@ -37,6 +38,13 @@ export default function TopBar() {
             <Languages size={16} />
             {lang === 'ta' ? 'EN' : 'த'}
           </button>
+          {!staff && (
+            <Link href="/analytics"
+              className="tap flex items-center justify-center text-ink/60"
+              aria-label="Analytics">
+              <BarChart3 size={20} />
+            </Link>
+          )}
           <Link href="/profile"
             className="tap flex items-center justify-center text-ink/60"
             aria-label="Profile">

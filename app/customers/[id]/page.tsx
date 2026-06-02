@@ -1,17 +1,30 @@
 import { createServer } from '@/lib/supabase-server';
 import Link from 'next/link';
-import { ArrowLeft, Phone, MessageCircle, Pencil, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Pencil, TrendingDown, TrendingUp, History } from 'lucide-react';
+import CustomerActions from '@/components/CustomerActions';
 
 export default async function CustomerDetail({ params }: { params: { id: string } }) {
   const sb = createServer();
   const { data: c } = await sb.from('customers').select('*').eq('id', params.id).single();
   if (!c) return <div className="p-6">Not found</div>;
 
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+
   const { data: entries } = await sb.from('entries')
     .select('*').eq('customer_id', params.id).order('entry_date', { ascending: false }).limit(60);
 
+  // Rate change history (Feature #29)
+  const { data: rateHistory } = await sb.from('rate_history')
+    .select('*').eq('customer_id', params.id).order('changed_at', { ascending: false }).limit(10);
+
   const total = (entries ?? []).reduce((s, e) =>
     s + Number(e.morning_litres) + Number(e.evening_litres), 0);
+
+  // This-month totals for customer actions
+  const monthEntries = (entries ?? []).filter(e => e.entry_date >= monthStart);
+  const monthLitres = monthEntries.reduce((s, e) => s + Number(e.morning_litres) + Number(e.evening_litres), 0);
+  const monthFeed   = monthEntries.reduce((s, e) => s + Number(e.biscuit_amount) + Number(e.thivanam_amount), 0);
 
   // Advance ledger: entries with advance_amount != 0
   const advanceLedger = (entries ?? []).filter(e => Number(e.advance_amount) !== 0);
@@ -65,11 +78,33 @@ export default async function CustomerDetail({ params }: { params: { id: string 
             </p>
           </div>
           <div>
-            <p className="text-[10px] text-ink/50">Last 30d L</p>
-            <p className="font-bold tabular-nums">{total.toFixed(1)}</p>
+            <p className="text-[10px] text-ink/50">This month L</p>
+            <p className="font-bold tabular-nums">{monthLitres.toFixed(1)}</p>
           </div>
         </div>
       </div>
+
+      {/* Quick actions: quick entry, WhatsApp summary, PDF */}
+      <CustomerActions customer={c} monthLitres={monthLitres} rate={Number(c.default_rate)} feed={monthFeed} />
+
+      {/* Rate change history (Feature #29) */}
+      {(rateHistory ?? []).length > 0 && (
+        <div className="bg-white rounded-2xl shadow-card p-4">
+          <h2 className="font-display font-bold text-sm flex items-center gap-1 mb-2">
+            <History size={15} /> Rate history
+          </h2>
+          <div className="space-y-1">
+            {(rateHistory ?? []).map(r => (
+              <div key={r.id} className="flex items-center justify-between text-xs text-ink/60">
+                <span>{new Date(r.changed_at).toLocaleDateString('en-IN')}</span>
+                <span className="tabular-nums">
+                  ₹{Number(r.old_rate ?? 0).toFixed(1)} → <b className="text-ink/80">₹{Number(r.new_rate).toFixed(1)}</b>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Milk entries */}
       <h2 className="font-display font-bold">Recent milk entries</h2>

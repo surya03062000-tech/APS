@@ -1,19 +1,21 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowser } from '@/lib/supabase';
-import { useLang } from '@/lib/store';
+import { useLang, useToast } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { Droplets, IndianRupee, Cookie, Wheat, Check, Camera, X } from 'lucide-react';
+import { Droplets, IndianRupee, Cookie, Wheat, Check, Camera, X, AlertTriangle } from 'lucide-react';
 import SmartVoiceEntry, { type ParsedCommand } from '@/components/SmartVoiceEntry';
 import VoiceMicButton from '@/components/VoiceMicButton';
 import type { Customer } from '@/types';
 
 type Tab = 'milk' | 'advance' | 'biscuit' | 'thivanam';
 
-export default function AddEntryPage() {
+function AddEntryInner() {
   const { lang } = useLang();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const toast = useToast();
   const sb = createBrowser();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -27,6 +29,7 @@ export default function AddEntryPage() {
   const [continuousMode, setContinuousMode] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [hasExisting, setHasExisting] = useState(false);   // Feature #48 duplicate warning
 
   const [f, setF] = useState({
     morning_litres: '', evening_litres: '', advance_amount: '',
@@ -43,10 +46,16 @@ export default function AddEntryPage() {
     });
   }, []);
 
+  // Home-screen shortcut: ?session=evening switches focus (Feature #36)
+  useEffect(() => {
+    if (searchParams.get('session')) setTab('milk');
+  }, [searchParams]);
+
   useEffect(() => {
     if (!customerId) return;
     sb.from('entries').select('*').eq('customer_id', customerId).eq('entry_date', date).maybeSingle()
       .then(({ data }) => {
+        setHasExisting(!!data);
         setF(data ? {
           morning_litres: String(data.morning_litres ?? ''),
           evening_litres: String(data.evening_litres ?? ''),
@@ -93,9 +102,15 @@ export default function AddEntryPage() {
     }
 
     setBusy(false); setOk(true);
+    const cust = customers.find(c => c.id === cid);
+    toast.show(
+      lang === 'ta' ? `${cust?.name ?? ''} சேமிக்கப்பட்டது ✅` : `${cust?.name ?? 'Entry'} saved ✅`,
+      'success'
+    );
+    setHasExisting(true);
     setTimeout(() => setOk(false), 2000);
     router.refresh();
-  }, [customerId, f, date, photo]);
+  }, [customerId, f, date, photo, customers, lang, toast]);
 
   const handleVoiceCommand = useCallback((cmd: ParsedCommand) => {
     let newCid = customerId;
@@ -181,6 +196,16 @@ export default function AddEntryPage() {
             className="tap flex-1 rounded-xl border border-gold-400/30 bg-white px-3 focus:border-gold-400 focus:outline-none text-sm" />
         </div>
       </div>
+
+      {/* Duplicate entry warning (Feature #48) */}
+      {hasExisting && (
+        <div className="flex items-center gap-2 bg-amber-50 text-amber-700 rounded-xl px-3 py-2 text-sm">
+          <AlertTriangle size={16} />
+          {lang === 'ta'
+            ? 'இந்த தேதிக்கு ஏற்கனவே பதிவு உள்ளது — சேமித்தால் புதுப்பிக்கப்படும்'
+            : 'Entry already exists for this date — saving will update it'}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="grid grid-cols-4 gap-1 bg-white rounded-2xl p-1 shadow-card">
@@ -303,5 +328,13 @@ export default function AddEntryPage() {
           busy ? '…' : t('save', lang)}
       </button>
     </section>
+  );
+}
+
+export default function AddEntryPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-ink/50">…</div>}>
+      <AddEntryInner />
+    </Suspense>
   );
 }

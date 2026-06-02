@@ -67,3 +67,22 @@ alter table user_settings
 -- 5. shop_name_ta column (if not already present)
 alter table user_settings
   add column if not exists shop_name_ta text;
+
+-- ============================================================
+-- Features 26-52 additions
+-- ============================================================
+
+-- Rate history is reused for Feature #29 (already created above as rate_history)
+
+-- Optional: index for faster month-range entry queries (analytics #31-34)
+create index if not exists idx_entries_date on entries(entry_date);
+create index if not exists idx_entries_customer_date on entries(customer_id, entry_date);
+
+-- ============================================================
+-- Required ENV VARS for new features (set in Vercel)
+-- ============================================================
+-- ANTHROPIC_API_KEY    → AI summary (#45)
+-- TWILIO_SMS_FROM      → SMS fallback (#52)
+-- GOOGLE_SHEET_ID      → Google Sheets sync (#49)  [+ existing GOOGLE_* OAuth]
+-- GMAIL_USER/GMAIL_PASS→ Daily report email (#9)
+-- CRON_SECRET          → protects cron endpoints
