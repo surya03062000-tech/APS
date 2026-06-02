@@ -20,7 +20,7 @@ interface Props {
 
 // ─── Number word → digit ───────────────────────────────────────────────────
 function wordsToNumber(text: string): string {
-  const tamilDigits: Record<string, number> = {
+  const tamilDigits: Record<string, number | string> = {
     'ஒன்று': 1, 'ஒன்': 1, 'இரண்டு': 2, 'இரண்': 2,
     'மூன்று': 3, 'மூன்': 3, 'நான்கு': 4, 'நான்': 4,
     'ஐந்து': 5, 'ஐந்': 5, 'ஆறு': 6, 'ஏழு': 7,
