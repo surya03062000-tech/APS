@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import BottomNav from '@/components/BottomNav';
 import TopBar from '@/components/TopBar';
 import ToastContainer from '@/components/Toast';
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <InstallPrompt />
           <PinLock />
         </div>
+        <Analytics />
       </body>
     </html>
   );
