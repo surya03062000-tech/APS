@@ -10,5 +10,28 @@
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Morning Entry",
+      "short_name": "Morning",
+      "description": "Quickly add morning milk entry",
+      "url": "/entry?session=morning",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Add Evening Entry",
+      "short_name": "Evening",
+      "description": "Quickly add evening milk entry",
+      "url": "/entry?session=evening",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "View monthly reports",
+      "url": "/reports",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }

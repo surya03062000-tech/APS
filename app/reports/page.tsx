@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createBrowser } from '@/lib/supabase';
 import { useLang } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { FileText, FileSpreadsheet, MessageCircle, Phone, TrendingUp } from 'lucide-react';
+import { FileText, FileSpreadsheet, MessageCircle, Phone, TrendingUp, MessageSquare, Lock, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import type { Customer } from '@/types';
 
@@ -34,6 +34,7 @@ export default function ReportsPage() {
   const [callSession, setCallSession] = useState<'morning' | 'evening'>('morning');
   const [bulkRate, setBulkRate] = useState('');
   const [settling, setSettling] = useState<string | null>(null);
+  const [exportPwd, setExportPwd] = useState('');   // Feature #43
 
   useEffect(() => {
     sb.from('customers').select('*').order('code').then(({ data }) => setCustomers(data ?? []));
@@ -145,8 +146,20 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  // Smart rate suggestion (Feature #47): most common rate among active customers
+  const suggestedRate = useMemo(() => {
+    const counts: Record<string, number> = {};
+    customers.forEach(c => {
+      const r = Number(c.default_rate).toFixed(1);
+      counts[r] = (counts[r] ?? 0) + 1;
+    });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    return top ? parseFloat(top[0]) : null;
+  }, [customers]);
+
   const reportPayload = {
     mode, year, month, date,
+    password: exportPwd || undefined,
     rows: rows.map(r => ({
       customer_id: r.customer.id, code: r.customer.code, name: r.customer.name,
       phone: r.customer.phone, whatsapp_enabled: r.customer.whatsapp_enabled,
@@ -254,6 +267,41 @@ export default function ReportsPage() {
           </select>
         </div>
       </div>
+
+      {/* SMS fallback (Feature #52) */}
+      <button onClick={() => callApi('/api/sms/send', reportPayload)}
+        className="tap w-full rounded-xl bg-slate-600 text-white font-semibold flex items-center justify-center gap-2 shadow-card">
+        <MessageSquare size={18} /> {lang === 'ta' ? 'SMS அனுப்பு (WhatsApp இல்லாதவர்களுக்கு)' : 'Send SMS (non-WhatsApp customers)'}
+      </button>
+
+      {/* Google Sheets sync (Feature #49) */}
+      {mode === 'monthly' && (
+        <button onClick={() => callApi('/api/export/sheets', reportPayload)}
+          className="tap w-full rounded-xl bg-green-700 text-white font-semibold flex items-center justify-center gap-2 shadow-card">
+          <FileSpreadsheet size={18} /> {lang === 'ta' ? 'Google Sheets-க்கு ஒத்திசை' : 'Sync to Google Sheets'}
+        </button>
+      )}
+
+      {/* Export password protection (Feature #43) */}
+      <div className="flex items-center gap-2 bg-white rounded-xl p-3 shadow-card">
+        <Lock size={16} className="text-ink/50 flex-shrink-0" />
+        <input type="text" value={exportPwd} onChange={e => setExportPwd(e.target.value)}
+          placeholder={lang === 'ta' ? 'PDF கடவுச்சொல் (விரும்பினால்)' : 'PDF password (optional)'}
+          className="flex-1 rounded-lg border border-gold-400/30 bg-milk px-3 text-sm focus:outline-none" style={{ minHeight: 36 }} />
+      </div>
+
+      {/* Smart rate suggestion (Feature #47) */}
+      {mode === 'monthly' && suggestedRate && (
+        <div className="flex items-center justify-between bg-gold-50 rounded-xl p-3 text-sm">
+          <span className="flex items-center gap-1 text-gold-700">
+            <Lightbulb size={15} /> {lang === 'ta' ? 'பரிந்துரைக்கப்பட்ட விலை' : 'Suggested rate'}: <b>₹{suggestedRate}/L</b>
+          </span>
+          <button onClick={() => { setBulkRate(String(suggestedRate)); }}
+            className="text-xs text-gold-700 underline font-semibold">
+            {lang === 'ta' ? 'பயன்படுத்து' : 'Use'}
+          </button>
+        </div>
+      )}
 
       {msg && <p className="text-sm text-center text-ink/70 bg-white rounded-xl p-3 shadow-card">{msg}</p>}
 

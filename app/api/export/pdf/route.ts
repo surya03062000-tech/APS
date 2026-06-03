@@ -4,9 +4,13 @@ import autoTable from 'jspdf-autotable';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { mode, year, month, date, rows, totals, lang } = body;
+  const { mode, year, month, date, rows, totals, lang, password } = body;
 
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({
+    unit: 'mm', format: 'a4',
+    // Password-protect the PDF if a password is supplied (Feature #43)
+    ...(password ? { encryption: { userPassword: password, ownerPassword: password, userPermissions: ['print'] } } : {}),
+  } as any);
 
   // Header
   const title = lang === 'ta' ? 'APS பால்பண்ணை, மூங்கிலாறு' : 'APS MILK CENTER, Mungilaru';

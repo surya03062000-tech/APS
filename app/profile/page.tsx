@@ -1,14 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createBrowser } from '@/lib/supabase';
-import { useLang } from '@/lib/store';
+import { useLang, usePin, useStaff } from '@/lib/store';
 import { t } from '@/lib/i18n';
-import { Check, Clock, Shield } from 'lucide-react';
+import { Check, Clock, Shield, Lock, UserCog } from 'lucide-react';
 
 type ActivityLog = { id: string; action: string; ip_address: string; created_at: string };
 
 export default function ProfilePage() {
   const { lang } = useLang();
+  const { pin, setPin } = usePin();
+  const { staff, setStaff } = useStaff();
+  const [pinInput, setPinInput] = useState('');
   const sb = createBrowser();
 
   const [f, setF] = useState({ shop_name: '', shop_name_ta: '', admin_email: '', default_milk_rate: '' });
@@ -99,6 +102,55 @@ export default function ProfilePage() {
           {busy ? '…' : t('save', lang)}
         </button>
       </form>
+
+      {/* Security: PIN lock (Feature #42) */}
+      <div className="bg-white rounded-2xl p-4 shadow-card space-y-3">
+        <h2 className="font-display font-bold text-sm flex items-center gap-2">
+          <Lock size={16} /> {lang === 'ta' ? 'PIN பூட்டு' : 'PIN Lock'}
+        </h2>
+        {pin ? (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-leaf-700">✅ {lang === 'ta' ? 'PIN அமைக்கப்பட்டது' : 'PIN is set'}</span>
+            <button onClick={() => setPin(null)}
+              className="tap px-3 rounded-lg bg-red-50 text-red-600 text-sm font-semibold">
+              {lang === 'ta' ? 'அகற்று' : 'Remove'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input type="number" inputMode="numeric" maxLength={4} value={pinInput}
+              onChange={e => setPinInput(e.target.value.slice(0, 4))}
+              placeholder={lang === 'ta' ? '4-இலக்க PIN' : '4-digit PIN'}
+              className="flex-1 rounded-lg border border-gold-400/30 bg-milk px-3 tabular-nums tracking-widest" style={{ minHeight: 40 }} />
+            <button onClick={() => { if (pinInput.length === 4) { setPin(pinInput); setPinInput(''); } }}
+              disabled={pinInput.length !== 4}
+              className="tap px-4 rounded-lg bg-gold-400 text-white text-sm font-semibold disabled:opacity-50">
+              {lang === 'ta' ? 'அமை' : 'Set'}
+            </button>
+          </div>
+        )}
+        <p className="text-xs text-ink/40">
+          {lang === 'ta'
+            ? 'App திறக்கும்போது / 30 நிமிட idle-க்குப் பிறகு PIN கேட்கும்'
+            : 'Asks for PIN on app open / after 30 min idle'}
+        </p>
+      </div>
+
+      {/* Staff mode (Feature #41) */}
+      <div className="bg-white rounded-2xl p-4 shadow-card">
+        <label className="flex items-center justify-between">
+          <span className="font-display font-bold text-sm flex items-center gap-2">
+            <UserCog size={16} /> {lang === 'ta' ? 'பணியாளர் முறை' : 'Staff mode'}
+          </span>
+          <input type="checkbox" checked={staff} onChange={e => setStaff(e.target.checked)}
+            className="w-5 h-5 accent-gold-400" />
+        </label>
+        <p className="text-xs text-ink/40 mt-2">
+          {lang === 'ta'
+            ? 'இயக்கினால் அறிக்கைகள் & பகுப்பாய்வு மறைக்கப்படும் — பணியாளர் பதிவு மட்டும் செய்யலாம்'
+            : 'When on, hides Reports & Analytics — assistant can only add entries'}
+        </p>
+      </div>
 
       <div className="bg-white rounded-2xl p-4 shadow-card">
         <button onClick={loadLogs}

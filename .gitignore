@@ -36,3 +36,4 @@ next-env.d.ts
 # PWA generated
 /public/sw.js
 /public/workbox-*.js
+package-lock.json
