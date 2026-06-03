@@ -93,11 +93,21 @@ export const whatsappTemplate = (
 
 export const voiceTemplate = (
   lang: Lang,
-  p: { name: string; session: 'morning'|'evening'; litres: number }
+  p: { name: string; session: 'morning'|'evening'; litres: number; rate?: number; milkAmount?: number; advanceBalance?: number }
 ) => {
   const sessionTa = p.session === 'morning' ? 'காலை' : 'மாலை';
   if (lang === 'ta') {
-    return `வணக்கம் ${p.name}, இன்று ${sessionTa} உங்கள் பால் அளவு ${p.litres.toFixed(3)} லிட்டர். நன்றி.`;
+    let msg = `வணக்கம் ${p.name}. இன்று ${sessionTa} உங்கள் பால் அளவு ${p.litres.toFixed(1)} லிட்டர்.`;
+    if (p.rate) msg += ` விலை லிட்டருக்கு ${p.rate} ரூபாய்.`;
+    if (p.milkAmount) msg += ` பால் தொகை ${Math.round(p.milkAmount)} ரூபாய்.`;
+    if (p.advanceBalance && p.advanceBalance > 0) msg += ` மொத்த பாக்கி ${Math.round(p.advanceBalance)} ரூபாய்.`;
+    msg += ` நன்றி.`;
+    return msg;
   }
-  return `Hello ${p.name}, today your ${p.session} milk quantity is ${p.litres.toFixed(3)} litres. Thank you.`;
+  let msg = `Hello ${p.name}. Today your ${p.session} milk is ${p.litres.toFixed(1)} litres.`;
+  if (p.rate) msg += ` Rate is ${p.rate} rupees per litre.`;
+  if (p.milkAmount) msg += ` Milk amount is ${Math.round(p.milkAmount)} rupees.`;
+  if (p.advanceBalance && p.advanceBalance > 0) msg += ` Total payable balance is ${Math.round(p.advanceBalance)} rupees.`;
+  msg += ` Thank you.`;
+  return msg;
 };

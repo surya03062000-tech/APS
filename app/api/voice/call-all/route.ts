@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().slice(0,10);
   const { data: entries, error: fetchErr } = await admin
     .from('entries')
-    .select('customer_id, morning_litres, evening_litres, customers(name, phone)')
+    .select('customer_id, morning_litres, evening_litres, customers(name, phone, default_rate, advance_balance)')
     .eq('owner_id', ownerId)
     .eq('entry_date', today);
 
@@ -74,10 +74,13 @@ export async function POST(req: NextRequest) {
     callable.map((e: any) => {
       const litres = session === 'morning'
         ? Number(e.morning_litres) : Number(e.evening_litres);
+      const rate = Number(e.customers.default_rate ?? 0);
+      const milkAmount = litres * rate;
+      const advanceBalance = Number(e.customers.advance_balance ?? 0);
       const msg = voiceTemplate(lang, {
         name: e.customers.name,
         session: session as 'morning' | 'evening',
-        litres,
+        litres, rate, milkAmount, advanceBalance,
       });
       // Escape XML special characters
       const safe = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
