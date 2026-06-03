@@ -135,7 +135,8 @@ export default function ReportsPage() {
     setMsg(null);
     const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const j = await res.json().catch(() => ({}));
-    setMsg(j.message || (res.ok ? '✓ Done' : `✗ ${j.error || 'Failed'}`));
+    const errDetail = j.errors?.length ? ` — ${j.errors[0]}` : '';
+    setMsg((j.message || (res.ok ? '✓ Done' : `✗ ${j.error || 'Failed'}`)) + errDetail);
   };
 
   const downloadFile = async (path: string, body: any, filename: string) => {
