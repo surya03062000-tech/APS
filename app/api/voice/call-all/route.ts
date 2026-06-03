@@ -7,10 +7,16 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { session = 'morning', lang = 'ta', cron_secret, owner_id } = body;
 
-  // Allow either authed user OR cron secret
+  // Allow cron secret, direct owner_id from authenticated client, or cookie auth
   let ownerId: string | null = null;
-  if (cron_secret === process.env.CRON_SECRET) {
+  if (cron_secret && cron_secret === process.env.CRON_SECRET) {
     ownerId = owner_id ?? null;
+  } else if (owner_id) {
+    // Verify the owner_id belongs to the authenticated session
+    const sb = createServer();
+    const { data: { user } } = await sb.auth.getUser();
+    ownerId = user?.id === owner_id ? owner_id : null;
+    if (!ownerId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   } else {
     const sb = createServer();
     const { data: { user } } = await sb.auth.getUser();

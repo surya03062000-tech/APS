@@ -31,12 +31,14 @@ export default function ReportsPage() {
   const [rows, setRows]   = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]     = useState<string | null>(null);
+  const [userId, setUserId] = useState('');
   const [callSession, setCallSession] = useState<'morning' | 'evening'>('morning');
   const [bulkRate, setBulkRate] = useState('');
   const [settling, setSettling] = useState<string | null>(null);
   const [exportPwd, setExportPwd] = useState('');   // Feature #43
 
   useEffect(() => {
+    sb.auth.getUser().then(({ data: { user } }) => { if (user) setUserId(user.id); });
     sb.from('customers').select('*').order('code').then(({ data }) => setCustomers(data ?? []));
   }, []);
 
@@ -256,7 +258,7 @@ export default function ReportsPage() {
           <MessageCircle size={18} /> WhatsApp
         </button>
         <div className="rounded-xl bg-gold-400 shadow-card overflow-hidden flex">
-          <button onClick={() => callApi('/api/voice/call-all', { session: callSession, lang })}
+          <button onClick={() => callApi('/api/voice/call-all', { session: callSession, lang, owner_id: userId })}
             className="tap flex-1 text-white font-semibold flex items-center justify-center gap-2 px-2">
             <Phone size={18} /> {t('callAll', lang)}
           </button>
