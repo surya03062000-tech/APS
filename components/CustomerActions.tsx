@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { createBrowser } from '@/lib/supabase';
 import { useLang, useToast } from '@/lib/store';
 import { whatsappTemplate } from '@/lib/i18n';
-import { FileText, MessageCircle, Zap, Loader2, Check } from 'lucide-react';
+import { FileText, MessageCircle, Zap, Check } from 'lucide-react';
 
 interface Props {
   customer: any;
@@ -19,7 +19,6 @@ export default function CustomerActions({ customer, monthLitres, rate, feed }: P
   const sb = createBrowser();
   const now = new Date();
 
-  const [pdfBusy, setPdfBusy] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [qMorning, setQMorning] = useState('');
   const [qEvening, setQEvening] = useState('');
@@ -29,18 +28,10 @@ export default function CustomerActions({ customer, monthLitres, rate, feed }: P
   const milkAmount = monthLitres * rate;
   const balance = milkAmount - feed - Number(customer.advance_balance);
 
-  const downloadPdf = async () => {
-    setPdfBusy(true);
-    const res = await fetch('/api/export/customer-pdf', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerId: customer.id, year: now.getFullYear(), month: now.getMonth() + 1 }),
-    });
-    setPdfBusy(false);
-    if (!res.ok) { toast.show(lang === 'ta' ? 'PDF தோல்வி' : 'PDF failed', 'error'); return; }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `${customer.name}.pdf`;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  // Open the bilingual HTML statement (renders Tamil correctly, save as PDF via print)
+  const openReport = () => {
+    const url = `/reports/print/customer/${customer.id}?year=${now.getFullYear()}&month=${now.getMonth() + 1}&lang=${lang}`;
+    window.open(url, '_blank');
   };
 
   // Open WhatsApp with prefilled monthly summary (no Twilio needed — uses wa.me)
@@ -81,9 +72,9 @@ export default function CustomerActions({ customer, monthLitres, rate, feed }: P
             <MessageCircle size={15} /> {lang === 'ta' ? 'சுருக்கம்' : 'Summary'}
           </button>
         )}
-        <button onClick={downloadPdf} disabled={pdfBusy}
-          className="tap rounded-xl bg-gold-700 text-white text-sm font-semibold flex items-center justify-center gap-1 disabled:opacity-60">
-          {pdfBusy ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />} PDF
+        <button onClick={openReport}
+          className="tap rounded-xl bg-gold-700 text-white text-sm font-semibold flex items-center justify-center gap-1">
+          <FileText size={15} /> PDF
         </button>
       </div>
 

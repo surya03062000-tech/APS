@@ -271,6 +271,14 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Styled bilingual monthly report (HTML → print to PDF, renders Tamil) */}
+      {mode === 'monthly' && (
+        <button onClick={() => window.open(`/reports/print/monthly?year=${year}&month=${month}&lang=${lang}`, '_blank')}
+          className="tap w-full rounded-xl bg-[#1e3a5f] text-white font-semibold flex items-center justify-center gap-2 shadow-card">
+          <FileText size={18} /> {lang === 'ta' ? 'அழகான மாதாந்திர அறிக்கை (PDF)' : 'Styled Monthly Report (PDF)'}
+        </button>
+      )}
+
       {/* SMS fallback (Feature #52) */}
       <button onClick={() => callApi('/api/sms/send', reportPayload)}
         className="tap w-full rounded-xl bg-slate-600 text-white font-semibold flex items-center justify-center gap-2 shadow-card">
