@@ -1,7 +1,8 @@
 import { createServer } from '@/lib/supabase-server';
 import Link from 'next/link';
-import { ArrowLeft, Phone, MessageCircle, Pencil, TrendingDown, TrendingUp, History } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Pencil, TrendingDown, TrendingUp, History, FileText } from 'lucide-react';
 import CustomerActions from '@/components/CustomerActions';
+import CustomerPrintButton from '@/components/CustomerPrintButton';
 
 export default async function CustomerDetail({ params }: { params: { id: string } }) {
   const sb = createServer();
@@ -84,7 +85,10 @@ export default async function CustomerDetail({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Quick actions: quick entry, WhatsApp summary, PDF */}
+      {/* Monthly print report button with month/year picker */}
+      <CustomerPrintButton customerId={params.id} customerName={c.name} />
+
+      {/* Quick actions: quick entry, WhatsApp summary */}
       <CustomerActions customer={c} monthLitres={monthLitres} rate={Number(c.default_rate)} feed={monthFeed} />
 
       {/* Rate change history (Feature #29) */}

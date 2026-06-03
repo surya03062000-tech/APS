@@ -172,10 +172,10 @@ function ReportInner() {
     const totalLitres = sub1 + sub2;
     const rate = Number(customer?.default_rate ?? 0);
     const feed = entries.reduce((s, e) => s + Number(e.biscuit_amount || 0) + Number(e.thivanam_amount || 0), 0);
-    const advance = entries.reduce((s, e) => s + Number(e.advance_amount || 0), 0);
+    const advanceBalance = Number(customer?.advance_balance ?? 0);
     const saleValue = totalLitres * rate;
-    const remaining = saleValue - feed - advance;
-    return { daysInMonth, first, second, sub1, sub2, totalLitres, rate, feed, advance, saleValue, remaining };
+    const remaining = saleValue - feed - advanceBalance;
+    return { daysInMonth, first, second, sub1, sub2, totalLitres, rate, feed, advanceBalance, saleValue, remaining };
   }, [entries, customer, year, month]);
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>{L.loading[lang]}</div>;
@@ -259,7 +259,7 @@ function ReportInner() {
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <SummaryCard label={L.saleValue[lang]} value={fmtRs(data.saleValue)} color="#2563eb" />
             <SummaryCard label={L.feed[lang]} value={fmtRs(data.feed)} color="#dc2626" />
-            <SummaryCard label={L.advance[lang]} value={fmtRs(data.advance)} color="#7c3aed" />
+            <SummaryCard label={L.advance[lang]} value={fmtRs(data.advanceBalance)} color="#7c3aed" />
             <SummaryCard label={L.remaining[lang]} value={fmtRs(data.remaining)} color="#B8862B" />
           </div>
 
