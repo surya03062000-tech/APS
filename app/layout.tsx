@@ -1,12 +1,5 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Analytics } from '@vercel/analytics/next';
-import BottomNav from '@/components/BottomNav';
-import TopBar from '@/components/TopBar';
-import ToastContainer from '@/components/Toast';
-import InstallPrompt from '@/components/InstallPrompt';
-import PinLock from '@/components/PinLock';
-import PullToRefresh from '@/components/PullToRefresh';
 
 export const metadata: Metadata = {
   title: 'APS MILK CENTER',
@@ -26,18 +19,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ta">
-      <body className="min-h-screen">
-        <div className="max-w-[520px] mx-auto min-h-screen relative">
-          <TopBar />
-          <PullToRefresh />
-          <ToastContainer />
-          <main className="page px-4 pt-2">{children}</main>
-          <BottomNav />
-          <InstallPrompt />
-          <PinLock />
-        </div>
-        <Analytics />
-      </body>
+      <body className="min-h-screen">{children}</body>
     </html>
   );
 }
